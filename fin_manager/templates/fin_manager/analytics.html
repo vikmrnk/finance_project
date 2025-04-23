@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - Finance Manager{% endblock %}
+
+{% block extra_head %}
+<style>
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .date-filter {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: var(--box-shadow);
+    }
+    
+    .highlight-card {
+        border-radius: var(--border-radius);
+        padding: 15px;
+        box-shadow: var(--box-shadow);
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    
+    .highlight-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .card-title {
+        font-size: 0.9rem;
+        color: var(--gray-color);
+    }
+    
+    .card-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">Financial Analytics</h1>
+        <p class="text-muted">Detailed insights into your financial data</p>
+    </div>
+</div>
+
+<!-- Date Filter -->
+<div class="row">
+    <div class="col-12">
+        <div class="date-filter">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Apply Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="highlight-card bg-white">
+            <div class="card-icon text-primary">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="card-title">Total Income</div>
+            <div class="card-value">{{ total_income|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="highlight-card bg-white">
+            <div class="card-icon text-danger">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="card-title">Total Expenses</div>
+            <div class="card-value">{{ total_expense|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="highlight-card bg-white">
+            <div class="card-icon text-success">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+            <div class="card-title">Total Savings</div>
+            <div class="card-value">{{ total_savings|floatformat:2 }}</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="highlight-card bg-white">
+            <div class="card-icon text-info">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="card-title">Saving Rate</div>
+            <div class="card-value">{{ saving_rate|floatformat:1 }}%</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <!-- Income by Category -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <span>Income by Category</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="incomeByCategory"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expense by Category -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <span>Expense by Category</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="expenseByCategory"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Monthly Income vs Expense -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <span>Monthly Income vs Expense</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Monthly Savings -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <span>Monthly Savings</span>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="savingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Color palette
+    const colors = {
+        primary: '#5D69D3',
+        secondary: '#38CFBA',
+        success: '#48D1A8',
+        danger: '#F25F5C',
+        warning: '#FFD166',
+        primaryLight: '#7C86E2',
+        secondaryLight: '#32B9A7',
+        successLight: '#36A285',
+        dangerLight: '#DE5552',
+        warningLight: '#E8BE5C'
+    };
+    
+    // Income by Category Chart
+    const incomeCategories = {{ income_categories|safe }};
+    const incomeAmounts = {{ income_amounts|safe }};
+    
+    if (incomeCategories && incomeCategories.length > 0) {
+        const ctxIncome = document.getElementById('incomeByCategory').getContext('2d');
+        new Chart(ctxIncome, {
+            type: 'pie',
+            data: {
+                labels: incomeCategories,
+                datasets: [{
+                    data: incomeAmounts,
+                    backgroundColor: [
+                        colors.success, colors.primary, colors.secondary, 
+                        colors.warning, colors.successLight
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    }
+    
+    // Expense by Category Chart
+    const expenseCategories = {{ expense_categories|safe }};
+    const expenseAmounts = {{ expense_amounts|safe }};
+    
+    if (expenseCategories && expenseCategories.length > 0) {
+        const ctxExpense = document.getElementById('expenseByCategory').getContext('2d');
+        new Chart(ctxExpense, {
+            type: 'pie',
+            data: {
+                labels: expenseCategories,
+                datasets: [{
+                    data: expenseAmounts,
+                    backgroundColor: [
+                        colors.danger, colors.warning, colors.primary,
+                        colors.secondary, colors.dangerLight, colors.warningLight,
+                        colors.primaryLight, colors.secondaryLight
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    }
+    
+    // Monthly Income vs Expense Chart
+    const months = {{ months|safe }};
+    const monthIncome = {{ month_income|safe }};
+    const monthExpense = {{ month_expense|safe }};
+    
+    if (months && months.length > 0) {
+        const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctxMonthly, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: monthIncome,
+                        backgroundColor: colors.success,
+                        borderColor: colors.successLight,
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Expense',
+                        data: monthExpense,
+                        backgroundColor: colors.danger,
+                        borderColor: colors.dangerLight,
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Monthly Savings Chart
+    const monthlySavings = {{ month_savings|safe }};
+    
+    if (months && months.length > 0) {
+        const ctxSavings = document.getElementById('savingsChart').getContext('2d');
+        new Chart(ctxSavings, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Monthly Savings',
+                    data: monthlySavings,
+                    backgroundColor: 'rgba(93, 105, 211, 0.2)',
+                    borderColor: colors.primary,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

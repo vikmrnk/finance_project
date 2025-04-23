@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Liabilities & Expenses{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-12 d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="h3 mb-0">Liabilities & Expenses</h1>
+      <p class="text-muted">Manage your loans, credit and recurring expenses</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLiabilityModal">
+      <i class="fas fa-plus"></i> Add Liability
+    </button>
+  </div>
+</div>
+
+<!-- Liabilities List -->
+<div class="card mb-4">
+  <div class="card-header">
+    <span>Upcoming Payments by Month</span>
+  </div>
+  <div class="card-body">
+    <div class="expenses">
+      {% for year_month, liabilities in expense_data.items %}
+        <div class="month">
+          <h4>{{ year_month }}</h4>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Due Date</th>
+                  <th>Account</th>
+                  <th class="text-end">Amount</th>
+                  <th class="text-end">Remaining</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for liability in liabilities %}
+                  <tr>
+                    <td>{{ liability.name }}</td>
+                    <td>{{ liability.liability_type }}</td>
+                    <td>{{ liability.end_date }}</td>
+                    <td>{{ liability.account }}</td>
+                    <td class="text-end text-danger">{{ liability.amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ liability.remaining_amount|floatformat:2 }}</td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-info toggle-details" data-liability-id="{{ liability.id }}">
+                        <i class="fas fa-info-circle"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="liability-details liability-{{ liability.id }}" style="display: none;">
+                    <td colspan="7">
+                      <div class="card">
+                        <div class="card-body">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <p><strong>Name:</strong> {{ liability.name }}</p>
+                              <p><strong>Amount:</strong> {{ liability.amount|floatformat:2 }}</p>
+                              <p><strong>Remaining:</strong> {{ liability.remaining_amount|floatformat:2 }}</p>
+                            </div>
+                            <div class="col-md-6">
+                              <p><strong>Interest Rate:</strong> {{ liability.interest_rate|floatformat:2 }}%</p>
+                              <p><strong>End Date:</strong> {{ liability.end_date }}</p>
+                              <p><strong>Account:</strong> {{ liability.account }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% empty %}
+        <div class="text-center py-4">
+          <p>No liabilities found. Add your first liability below.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Add Liability Modal -->
+<div class="modal fade" id="addLiabilityModal" tabindex="-1" aria-labelledby="addLiabilityModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addLiabilityModalLabel">Add New Liability</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="id_name" class="form-label">Name</label>
+              {{ form.name }}
+            </div>
+            <div class="col-md-6">
+              <label for="id_liability_type" class="form-label">Type</label>
+              {{ form.liability_type }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="id_amount" class="form-label">Total Amount</label>
+              {{ form.amount }}
+            </div>
+            <div class="col-md-6">
+              <label for="id_remaining_amount" class="form-label">Remaining Amount</label>
+              {{ form.remaining_amount }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="id_interest_rate" class="form-label">Interest Rate (%)</label>
+              {{ form.interest_rate }}
+            </div>
+            <div class="col-md-6">
+              <label for="id_account" class="form-label">Account</label>
+              {{ form.account }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="id_start_date" class="form-label">Start Date</label>
+              {{ form.start_date }}
+            </div>
+            <div class="col-md-6">
+              <label for="id_end_date" class="form-label">End Date</label>
+              {{ form.end_date }}
+            </div>
+          </div>
+          <div class="text-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Liability</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle liability details
+    const toggleButtons = document.querySelectorAll('.toggle-details');
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const liabilityId = this.dataset.liabilityId;
+        const detailsRow = document.querySelector(`.liability-${liabilityId}`);
+        
+        if (detailsRow.style.display === 'none') {
+          detailsRow.style.display = 'table-row';
+          this.innerHTML = '<i class="fas fa-minus-circle"></i>';
+        } else {
+          detailsRow.style.display = 'none';
+          this.innerHTML = '<i class="fas fa-info-circle"></i>';
+        }
+      });
+    });
+    
+    // Initialize remaining amount to equal amount by default
+    const amountInput = document.getElementById('id_amount');
+    const remainingInput = document.getElementById('id_remaining_amount');
+    
+    amountInput.addEventListener('input', function() {
+      remainingInput.value = this.value;
+    });
+  });
+</script>
+{% endblock %}

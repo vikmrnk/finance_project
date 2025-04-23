@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Category - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Category</h1>
+        <p class="text-muted">{% if form.instance.pk %}Update category details{% else %}Create a new category for income or expenses{% endif %}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">Category Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_category_type" class="form-label">Category Type</label>
+                        {{ form.category_type }}
+                        {% if form.category_type.errors %}
+                        <div class="text-danger">
+                            {{ form.category_type.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_icon" class="form-label">Icon (Optional)</label>
+                        {{ form.icon }}
+                        {% if form.icon.errors %}
+                        <div class="text-danger">
+                            {{ form.icon.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Enter a Font Awesome icon class like "fas fa-shopping-cart" or "fas fa-home"
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'categories' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Update{% else %}Create{% endif %} Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

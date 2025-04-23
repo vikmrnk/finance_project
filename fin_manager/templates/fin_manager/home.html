@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Finance Manager{% endblock %}
+
+{% block extra_head %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: 80px 0;
+        border-radius: var(--border-radius);
+        margin-bottom: 30px;
+    }
+    
+    .hero-title {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+    }
+    
+    .feature-card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--box-shadow);
+        height: 100%;
+        transition: transform 0.3s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+    }
+    
+    .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--dark-color);
+    }
+    
+    .feature-desc {
+        color: var(--gray-color);
+        margin-bottom: 0;
+    }
+    
+    .cta-section {
+        background-color: var(--light-color);
+        border-radius: var(--border-radius);
+        padding: 40px;
+        margin-top: 30px;
+        text-align: center;
+    }
+    
+    .cta-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--dark-color);
+    }
+    
+    .cta-subtitle {
+        color: var(--gray-color);
+        margin-bottom: 30px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .btn-lg {
+        padding: 12px 30px;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <!-- Redirect to dashboard for logged in users -->
+    <script>
+        window.location.href = "{% url 'dashboard' %}";
+    </script>
+{% else %}
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container text-center">
+            <h1 class="hero-title">Take Control of Your Finances</h1>
+            <p class="hero-subtitle">An all-in-one financial management solution to track expenses, monitor income, and achieve your savings goals.</p>
+            <div>
+                <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">Get Started</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Log In</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3 class="feature-title">Smart Budget Planning</h3>
+                <p class="feature-desc">Create custom budgets for different expense categories and track your spending in real-time. Set financial goals and let our app help you achieve them.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <h3 class="feature-title">Transaction Management</h3>
+                <p class="feature-desc">Record and categorize your income and expenses. View detailed transaction history with powerful filtering and search capabilities.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="feature-title">Insightful Analytics</h3>
+                <p class="feature-desc">Visualize your financial data with interactive charts and graphs. Gain insights into your spending patterns and identify areas for improvement.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h3 class="feature-title">Multiple Accounts</h3>
+                <p class="feature-desc">Manage all your financial accounts in one place. Keep track of checking accounts, savings, credit cards, and investment accounts.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h3 class="feature-title">Subscription Tracking</h3>
+                <p class="feature-desc">Never miss a payment or forget about a subscription again. Get notified of upcoming payments and monitor your recurring expenses.</p>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <h3 class="feature-title">Debt Management</h3>
+                <p class="feature-desc">Track your loans, credit card debt, and other liabilities. Monitor interest rates and plan your repayment strategy.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="cta-section">
+        <h2 class="cta-title">Ready to Take Control of Your Financial Future?</h2>
+        <p class="cta-subtitle">Join thousands of users who have transformed their financial health with our platform. Start your journey to financial freedom today.</p>
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Create Free Account</a>
+    </div>
+{% endif %}
+{% endblock %}

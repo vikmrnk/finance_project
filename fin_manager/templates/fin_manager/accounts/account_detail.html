@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ account.name }} - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="h3 mb-0">{{ account.name }}</h1>
+            <p class="text-muted">{{ account.get_account_type_display }}</p>
+        </div>
+        <div>
+            <a href="{% url 'account_update' account.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Edit Account
+            </a>
+            <a href="{% url 'accounts' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left"></i> Back to Accounts
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Account Details Card -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Account Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Current Balance:</div>
+                    <div class="col-6 fw-bold fs-4">{{ account.balance|floatformat:2 }} {{ account.currency }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Account Type:</div>
+                    <div class="col-6">{{ account.get_account_type_display }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Saving Goal:</div>
+                    <div class="col-6">{{ account.saving_goal|floatformat:2 }} {{ account.currency }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6 text-muted">Created:</div>
+                    <div class="col-6">{{ account.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                        <i class="fas fa-plus"></i> Add Transaction
+                    </button>
+                    <a href="{% url 'transactions' %}?account={{ account.id }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list"></i> View All Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Recent Transactions</h5>
+        <a href="{% url 'transactions' %}?account={{ account.id }}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        {% if recent_transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in recent_transactions %}
+                    <tr>
+                        <td>{{ transaction.date }}</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>
+                            {% if transaction.category %}
+                                <span class="badge bg-secondary">{{ transaction.category.name }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">Uncategorized</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end {% if transaction.transaction_type == 'expense' %}text-danger{% else %}text-success{% endif %}">
+                            {% if transaction.transaction_type == 'expense' %}-{% endif %}
+                            {{ transaction.amount|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'transaction_update' transaction.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'transaction_delete' transaction.id %}" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <p>No transactions found for this account.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                Add Your First Transaction
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTransactionModalLabel">Add New Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'transaction_create' %}">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_transaction_type" class="form-label">Transaction Type</label>
+                            {{ transaction_form.transaction_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_amount" class="form-label">Amount</label>
+                            {{ transaction_form.amount }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">Description</label>
+                        {{ transaction_form.description }}
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_category" class="form-label">Category</label>
+                            {{ transaction_form.category }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_date" class="form-label">Date</label>
+                            {{ transaction_form.date }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_account" class="form-label">Account</label>
+                        {{ transaction_form.account }}
+                        <input type="hidden" name="redirect_to" value="{% url 'account_detail' account.id %}">
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Transaction</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
