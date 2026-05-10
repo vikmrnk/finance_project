@@ -11,6 +11,7 @@ A comprehensive personal finance management web application built with Django. T
 - **Analytics**: Detailed financial insights with interactive charts and date filtering
 - **Debt Management**: Track loans, credit cards, and other liabilities
 - **Subscription Tracking**: Monitor recurring expenses and subscription renewals
+- **Subscription Calendar**: Track upcoming renewals and add payments to Google Calendar
 - **Category Management**: Customize expense and income categories with icons
 - **Responsive Design**: Optimized for both desktop and mobile devices
 - **Multilingual Support**: Interface available in Ukrainian and English
@@ -79,6 +80,8 @@ A comprehensive personal finance management web application built with Django. T
    - `DJANGO_ALLOWED_HOSTS` = `<your-service>.onrender.com`
    - `DJANGO_CSRF_TRUSTED_ORIGINS` = `https://<your-service>.onrender.com`
    - `DATABASE_URL` = PostgreSQL URL from Render
+   - `DJANGO_SECURE_SSL_REDIRECT` = `True`
+   - `DJANGO_SECURE_HSTS_SECONDS` = `31536000`
 5. Redeploy the service.
 
 ## Project Structure

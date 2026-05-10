@@ -12,7 +12,10 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta
+import calendar
+from urllib.parse import urlencode
 import json
 
 from .models import (
@@ -135,6 +138,102 @@ def account_settings(request):
         'fin_manager/account_settings.html',
         {'user_form': user_form, 'password_form': password_form},
     )
+
+
+def _build_google_calendar_link(subscription):
+    start_date = subscription.next_payment_date.strftime('%Y%m%d')
+    end_date = (subscription.next_payment_date + timedelta(days=1)).strftime('%Y%m%d')
+    params = {
+        'action': 'TEMPLATE',
+        'text': f"{subscription.name} payment",
+        'dates': f"{start_date}/{end_date}",
+        'details': f"Recurring subscription payment: {subscription.name} ({subscription.amount})",
+    }
+    return f"https://calendar.google.com/calendar/render?{urlencode(params)}"
+
+
+def _build_subscription_calendar_data(subscriptions, year, month):
+    month_weeks = calendar.monthcalendar(year, month)
+    payment_map = {}
+    for subscription in subscriptions:
+        payment_date = subscription.next_payment_date
+        if payment_date.year == year and payment_date.month == month:
+            payment_map.setdefault(payment_date.day, []).append(subscription)
+    calendar_rows = []
+    for week in month_weeks:
+        row = []
+        for day in week:
+            row.append({
+                'day': day,
+                'payments': payment_map.get(day, []) if day else [],
+            })
+        calendar_rows.append(row)
+    return calendar_rows
+
+
+@login_required(login_url='/accounts/login/')
+def subscriptions_center(request):
+    user = request.user
+    today = timezone.now().date()
+
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST, user=user)
+        if form.is_valid():
+            subscription = form.save(commit=False)
+            subscription.user = user
+            subscription.save()
+            messages.success(request, 'Subscription added successfully.')
+            return redirect('subscriptions')
+    else:
+        form = SubscriptionForm(user=user)
+
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    current_date = timezone.now().date()
+    selected_month = int(month) if month and month.isdigit() else current_date.month
+    selected_year = int(year) if year and year.isdigit() else current_date.year
+
+    subscriptions = Subscription.objects.filter(user=user).order_by('next_payment_date', 'name')
+    upcoming_alerts = subscriptions.filter(next_payment_date__gte=today, next_payment_date__lte=today + timedelta(days=7))
+
+    calendar_rows = _build_subscription_calendar_data(subscriptions, selected_year, selected_month)
+
+    subscriptions_data = []
+    for item in subscriptions:
+        days_left = (item.next_payment_date - today).days
+        subscriptions_data.append({
+            'object': item,
+            'days_left': days_left,
+            'google_calendar_link': _build_google_calendar_link(item),
+        })
+
+    prev_month = selected_month - 1 or 12
+    prev_year = selected_year - 1 if selected_month == 1 else selected_year
+    next_month = selected_month + 1 if selected_month < 12 else 1
+    next_year = selected_year + 1 if selected_month == 12 else selected_year
+
+    context = {
+        'form': form,
+        'subscriptions_data': subscriptions_data,
+        'upcoming_alerts': upcoming_alerts,
+        'calendar_rows': calendar_rows,
+        'selected_month': selected_month,
+        'selected_year': selected_year,
+        'month_name': calendar.month_name[selected_month],
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+        'today': today,
+    }
+    return render(request, 'fin_manager/subscriptions/subscription_center.html', context)
+
+
+@login_required(login_url='/accounts/login/')
+@require_POST
+def mark_subscription_notifications_read(request):
+    request.session['subscription_alerts_seen_on'] = timezone.now().date().isoformat()
+    return JsonResponse({'status': 'ok'})
 
 
 # Dashboard

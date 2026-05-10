@@ -33,6 +33,8 @@ urlpatterns = [
     
     # Analytics URL
     path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
+    path('subscriptions/', views.subscriptions_center, name='subscriptions'),
+    path('notifications/subscriptions/read/', views.mark_subscription_notifications_read, name='notifications_subscriptions_read'),
     
     # Legacy URLs
     path('expenses/', views.ExpenseListView.as_view(), name='expenses'),

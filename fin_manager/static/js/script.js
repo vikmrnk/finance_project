@@ -33,9 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     sidebarBackdrop.classList.toggle('show');
                 }
             } else {
-                sidebar.classList.toggle('active');
+                sidebar.classList.toggle('sidebar-hidden');
                 if (content) {
-                    content.classList.toggle('active');
+                    content.classList.toggle('sidebar-expanded');
                 }
             }
         });
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeMobileSidebar();
             } else {
                 if (content) {
-                    content.classList.remove('active');
+                    content.classList.remove('sidebar-expanded');
                 }
             }
         });
@@ -59,6 +59,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isMobileView()) {
                     closeMobileSidebar();
                 }
+            });
+        });
+    }
+
+    function getCookie(name) {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(name + '='));
+        return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : '';
+    }
+
+    const notificationsModal = document.getElementById('subscriptionNotificationsModal');
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (notificationsModal) {
+        notificationsModal.addEventListener('shown.bs.modal', function() {
+            fetch('/notifications/subscriptions/read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(function() {
+                if (notificationBadge) {
+                    notificationBadge.remove();
+                }
+            }).catch(function() {
+                // Silently ignore UI update failure.
             });
         });
     }

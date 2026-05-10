@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Subscriptions - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Recurring Subscriptions</h1>
+        <p class="text-muted mb-0">Track renewals, calendar events, and upcoming payment alerts.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-4">
+        <div class="card">
+            <div class="card-header">Add Subscription</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.amount.id_for_label }}" class="form-label">Amount</label>
+                        {{ form.amount }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.frequency.id_for_label }}" class="form-label">Frequency</label>
+                        {{ form.frequency }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
+                        {{ form.end_date }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.next_payment_date.id_for_label }}" class="form-label">Next Payment Date</label>
+                        {{ form.next_payment_date }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.account.id_for_label }}" class="form-label">Account</label>
+                        {{ form.account }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                        {{ form.category }}
+                    </div>
+                    {% if form.errors %}
+                    <div class="alert alert-danger">{{ form.errors }}</div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary w-100">Add Subscription</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">Upcoming Notifications</div>
+            <div class="card-body">
+                {% if upcoming_alerts %}
+                    {% for item in upcoming_alerts %}
+                    <div class="notification-item">
+                        <div class="fw-semibold">{{ item.name }}</div>
+                        <small class="text-muted">{{ item.next_payment_date|date:"Y-m-d" }} - {{ item.amount }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No subscription payments due in the next 7 days.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>All Subscriptions</span>
+                <span class="badge bg-primary">{{ subscriptions_data|length }}</span>
+            </div>
+            <div class="card-body">
+                {% if subscriptions_data %}
+                    <div class="list-group">
+                    {% for item in subscriptions_data %}
+                        <div class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                            <div>
+                                <div class="fw-semibold">{{ item.object.name }}</div>
+                                <small class="text-muted">
+                                    {{ item.object.get_frequency_display }} | Next payment: {{ item.object.next_payment_date|date:"Y-m-d" }}
+                                    {% if item.days_left >= 0 %} (in {{ item.days_left }} days){% else %} (overdue){% endif %}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ item.google_calendar_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-regular fa-calendar-plus"></i> Google Calendar
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No subscriptions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>In-App Payment Calendar ({{ month_name }} {{ selected_year }})</span>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-sm btn-outline-secondary" href="?month={{ prev_month }}&year={{ prev_year }}">Prev</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="?month={{ next_month }}&year={{ next_year }}">Next</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="subscription-calendar-grid mb-2">
+                    <div class="calendar-head">Mon</div>
+                    <div class="calendar-head">Tue</div>
+                    <div class="calendar-head">Wed</div>
+                    <div class="calendar-head">Thu</div>
+                    <div class="calendar-head">Fri</div>
+                    <div class="calendar-head">Sat</div>
+                    <div class="calendar-head">Sun</div>
+                </div>
+                {% for week in calendar_rows %}
+                <div class="subscription-calendar-grid">
+                    {% for cell in week %}
+                    <div class="calendar-cell {% if cell.day and cell.day == today.day and selected_month == today.month and selected_year == today.year %}today{% endif %}">
+                        {% if cell.day %}
+                            <div class="calendar-day">{{ cell.day }}</div>
+                            {% if cell.payments %}
+                                {% for payment in cell.payments %}
+                                <div class="calendar-subscription">{{ payment.name }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
