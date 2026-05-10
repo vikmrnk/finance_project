@@ -41,6 +41,27 @@ a:hover {
     color: var(--primary-dark);
 }
 
+/* App wordmark (navbar) */
+.navbar-brand-logo {
+    font-family: 'Outfit', 'Poppins', 'Segoe UI', sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    color: #2d1b4e !important;
+    text-decoration: none !important;
+    background: linear-gradient(105deg, #4a2d8f 0%, #2d1b4e 55%, #5d3a9e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+}
+
+.navbar-brand-logo:hover {
+    filter: brightness(1.08);
+    opacity: 0.95;
+}
+
 /* Layout */
 .wrapper {
     display: flex;
@@ -364,6 +385,20 @@ a:hover {
 .calendar-cell.today {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 1px rgba(93, 105, 211, 0.25);
+}
+
+.calendar-cell-clickable {
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.calendar-cell-clickable:hover {
+    box-shadow: 0 0 0 2px rgba(93, 105, 211, 0.35);
+}
+
+.calendar-cell-clickable:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .calendar-day {

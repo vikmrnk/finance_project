@@ -152,6 +152,23 @@ def _build_google_calendar_link(subscription):
     return f"https://calendar.google.com/calendar/render?{urlencode(params)}"
 
 
+def _subscription_calendar_day_payload(subscriptions, year, month):
+    by_day = {}
+    for subscription in subscriptions:
+        payment_date = subscription.next_payment_date
+        if payment_date.year != year or payment_date.month != month:
+            continue
+        key = str(payment_date.day)
+        by_day.setdefault(key, []).append({
+            'name': subscription.name,
+            'amount': str(subscription.amount),
+            'frequency': subscription.get_frequency_display(),
+            'googleCalendarUrl': _build_google_calendar_link(subscription),
+            'category': subscription.category.name if subscription.category else '',
+        })
+    return by_day
+
+
 def _build_subscription_calendar_data(subscriptions, year, month):
     month_weeks = calendar.monthcalendar(year, month)
     payment_map = {}
@@ -217,6 +234,7 @@ def subscriptions_center(request):
         'subscriptions_data': subscriptions_data,
         'upcoming_alerts': upcoming_alerts,
         'calendar_rows': calendar_rows,
+        'calendar_days_json': _subscription_calendar_day_payload(subscriptions, selected_year, selected_month),
         'selected_month': selected_month,
         'selected_year': selected_year,
         'month_name': calendar.month_name[selected_month],
