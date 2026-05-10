@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 try:
     import dj_database_url
@@ -34,6 +35,21 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+
+# Render injects these at runtime/build; avoids DisallowedHost if DJANGO_ALLOWED_HOSTS was mistyped or empty.
+_render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if _render_hostname and _render_hostname not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_hostname)
+
+_render_url = os.getenv('RENDER_EXTERNAL_URL')
+if _render_url:
+    parsed = urlparse(_render_url)
+    if parsed.hostname and parsed.hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(parsed.hostname)
+    if parsed.scheme and parsed.netloc:
+        _origin = f'{parsed.scheme}://{parsed.netloc}'
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
 
 
 # Application definition
