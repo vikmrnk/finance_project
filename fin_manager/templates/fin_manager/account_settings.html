@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings - Finance Manager{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Profile Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ user_form.username.id_for_label }}" class="form-label">Username</label>
+                        {{ user_form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                        {{ user_form.email }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First name</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last name</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+                    {% if user_form.errors %}
+                    <div class="alert alert-danger">
+                        {{ user_form.errors }}
+                    </div>
+                    {% endif %}
+                    <button type="submit" name="update_profile" class="btn btn-primary">Save profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Change Password</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ password_form.old_password.id_for_label }}" class="form-label">Current password</label>
+                        {{ password_form.old_password }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ password_form.new_password1.id_for_label }}" class="form-label">New password</label>
+                        {{ password_form.new_password1 }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ password_form.new_password2.id_for_label }}" class="form-label">Confirm new password</label>
+                        {{ password_form.new_password2 }}
+                    </div>
+                    {% if password_form.errors %}
+                    <div class="alert alert-danger">
+                        {{ password_form.errors }}
+                    </div>
+                    {% endif %}
+                    <button type="submit" name="change_password" class="btn btn-outline-primary">Change password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

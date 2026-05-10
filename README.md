@@ -66,6 +66,21 @@ A comprehensive personal finance management web application built with Django. T
 5. Track your transactions regularly
 6. Use the analytics page to gain insights into your financial health
 
+## Deploy on Render (Free Tier)
+
+1. Create a **PostgreSQL** database in Render and copy the `External Database URL`.
+2. Create a **Web Service** from this repository.
+3. Set:
+   - Build command: `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`
+   - Start command: `gunicorn FinanceManager.wsgi:application`
+4. Add environment variables in Render:
+   - `DJANGO_SECRET_KEY` = a long random string
+   - `DJANGO_DEBUG` = `False`
+   - `DJANGO_ALLOWED_HOSTS` = `<your-service>.onrender.com`
+   - `DJANGO_CSRF_TRUSTED_ORIGINS` = `https://<your-service>.onrender.com`
+   - `DATABASE_URL` = PostgreSQL URL from Render
+5. Redeploy the service.
+
 ## Project Structure
 
 - **fin_manager/**: The main Django app containing models, views, and templates

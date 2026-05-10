@@ -62,12 +62,18 @@
 
             <ul class="list-unstyled user-actions">
                 <li>
+                    <a href="{% url 'account_settings' %}">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+                <li>
                     <a href="{% url 'logout' %}">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </li>
             </ul>
         </nav>
+        <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
         {% endif %}
 
         <!-- Page Content -->
@@ -86,7 +92,9 @@
                     <div class="d-flex ms-auto">
                         {% if user.is_authenticated %}
                         <span class="navbar-text">
-                            <i class="fas fa-user"></i> {{ user.username }}
+                            <a href="{% url 'account_settings' %}" class="text-decoration-none text-dark">
+                                <i class="fas fa-user"></i> {{ user.username }}
+                            </a>
                         </span>
                         {% else %}
                         <ul class="navbar-nav">
@@ -134,15 +142,6 @@
     <!-- Custom JS -->
     <script src="{% static 'js/script.js' %}"></script>
 
-    <script>
-        $(document).ready(function () {
-            $('#sidebarCollapse').on('click', function () {
-                $('#sidebar').toggleClass('active');
-                $('#content').toggleClass('active');
-            });
-        });
-    </script>
-    
     {% block extra_scripts %}{% endblock %}
 </body>
 </html> 

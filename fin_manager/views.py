@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, F, Q
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -25,6 +26,7 @@ from .models import (
 )
 from .forms import (
     CustomUserCreationForm, 
+    UserUpdateForm,
     AccountForm, 
     TransactionForm, 
     BudgetForm, 
@@ -97,6 +99,42 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required(login_url='/accounts/login/')
+def account_settings(request):
+    def _style_password_form(form):
+        for field in form.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            user_form = UserUpdateForm(request.POST, instance=request.user)
+            password_form = PasswordChangeForm(request.user)
+            _style_password_form(password_form)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Profile details were updated successfully.')
+                return redirect('account_settings')
+        elif 'change_password' in request.POST:
+            user_form = UserUpdateForm(instance=request.user)
+            password_form = PasswordChangeForm(request.user, request.POST)
+            _style_password_form(password_form)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Password changed successfully.')
+                return redirect('account_settings')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        password_form = PasswordChangeForm(request.user)
+        _style_password_form(password_form)
+
+    return render(
+        request,
+        'fin_manager/account_settings.html',
+        {'user_form': user_form, 'password_form': password_form},
+    )
 
 
 # Dashboard
